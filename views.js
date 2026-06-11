@@ -213,7 +213,13 @@ export async function renderDetailView(storeId, container) {
 
       <!-- All photos grid -->
       ${photos.length ? `<div>
-        <div style="font-size:13px;font-weight:600;color:#737373;margin-bottom:8px;">すべての写真 (${photos.length}枚)</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:13px;font-weight:600;color:#737373;">すべての写真 (${photos.length}枚)</div>
+          <button data-action="download-all-photos" data-store-id="${store.id}"
+            style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid #DBDBDB;background:#fff;color:#262626;font-size:12px;font-weight:600;cursor:pointer;">
+            <i data-lucide="download" width="13" height="13"></i>まとめてダウンロード
+          </button>
+        </div>
         <div class="detail-photo-grid">
           ${photos.map(p => `<div style="position:relative;">
             <img src="${photoUrl(p)}" loading="lazy" alt="写真" style="aspect-ratio:1;object-fit:cover;width:100%;display:block;" />
