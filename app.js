@@ -142,8 +142,13 @@ async function handleDownloadAllPhotos(storeId) {
     const file = new File([zipBlob], zipName, { type: 'application/zip' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file] });
-      return;
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch (shareErr) {
+        if (shareErr.name === 'AbortError') return;
+        // fall through to direct download
+      }
     }
 
     const objectUrl = URL.createObjectURL(zipBlob);
