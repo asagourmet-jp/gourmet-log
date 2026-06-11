@@ -91,6 +91,8 @@ document.addEventListener('click', async e => {
     showView(state.currentView);
   } else if (action === 'download-photo') {
     await handleDownloadPhoto(el.dataset.photoUrl);
+  } else if (action === 'download-all-photos') {
+    await handleDownloadAllPhotos(el.dataset.storeId);
   }
 });
 
@@ -116,6 +118,43 @@ async function handleDownloadPhoto(url) {
     URL.revokeObjectURL(objectUrl);
   } catch (err) {
     window.open(url, '_blank');
+  }
+}
+
+async function handleDownloadAllPhotos(storeId) {
+  const { getStore, getPhotoUrl } = await import('./api.js');
+  const store = await getStore(storeId);
+  const photos = (store?.photos || []).sort((a, b) => a.sort_order - b.sort_order);
+  if (!photos.length) return;
+
+  try {
+    const files = [];
+    for (let i = 0; i < photos.length; i++) {
+      const url = getPhotoUrl(photos[i]);
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const ext = (blob.type.split('/')[1] || 'jpg').split('+')[0];
+      files.push(new File([blob], `photo-${i + 1}.${ext}`, { type: blob.type }));
+    }
+
+    if (navigator.canShare && navigator.canShare({ files })) {
+      await navigator.share({ files });
+      return;
+    }
+
+    for (const file of files) {
+      const objectUrl = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+      await new Promise(r => setTimeout(r, 300));
+    }
+  } catch (err) {
+    showToast('ダウンロードに失敗しました', 'error');
   }
 }
 
