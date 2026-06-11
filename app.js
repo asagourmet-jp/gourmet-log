@@ -98,11 +98,18 @@ async function handleDownloadPhoto(url) {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
     const ext = (blob.type.split('/')[1] || 'jpg').split('+')[0];
+    const file = new File([blob], `photo-${Date.now()}.${ext}`, { type: blob.type });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = objectUrl;
-    a.download = `photo-${Date.now()}.${ext}`;
+    a.download = file.name;
     document.body.appendChild(a);
     a.click();
     a.remove();
